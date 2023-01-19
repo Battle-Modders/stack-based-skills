@@ -93,19 +93,20 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 			if (!this.isKeepingAddRemoveHistory()) return removeSelf();
 			if (--this.m.MSU_AddedStack == 0) return removeSelf();
 
+			// ::logInfo(this.m.MSU_AddedStack);
+
 			local count = this.m.MSU_IsSerializedStack[_isSerialized];
 			if (count > 0) this.m.MSU_IsSerializedStack[_isSerialized] = count - 1;
 			else throw "trying to remove " + this.getID() + " but all its stacked additions with \'IsSerialized = " + value + "\' have already been removed";
 
 			this.updateIsSerialized();
 
-			if (this.getID() == "perk.shield_expert")
-			{
-				::logInfo("Removing shield expert");
-				::logInfo("IsSerialized (skill): " + this.m.IsSerialized);
-				// ::logInfo("IsSerialized (skill): " + this.m.MSU_StackedFields[fieldName][preferredValue]);
-				::MSU.Log.printData(this.m.MSU_IsSerializedStack, 2, false, 5);
-			}
+			// if (this.getID() == "actives.reload_bolt")
+			// {
+			// 	::logInfo("IsSerialized (skill): " + this.m.IsSerialized);
+			// 	// ::logInfo("IsSerialized (skill): " + this.m.MSU_StackedFields[fieldName][preferredValue]);
+			// 	::MSU.Log.printData(this.m.MSU_IsSerializedStack, 2, false, 5);
+			// }
 
 			// The actual item which provided this skill isn't unequipped yet because
 			// the removeSelf is called BEFORE the item is unequipped. So, we iterate over
@@ -135,10 +136,15 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		local add = o.add;
 		o.add = function( _skill, _order = 0 )
 		{
-			if (_skill.getID() == "perk.shield_expert")
-			{
-				::logInfo("add()");
-			}
+			// if (_skill.getID() == "actives.reload_bolt")
+			// {
+			// 	::logInfo("add()");
+			// }
+
+			// if (_skill.getID() == "actives.reload_bolt")
+			// {
+			// 	::logInfo("MSU_AddedStack: " + _skill.m.MSU_AddedStack);
+			// }
 
 			if (!_skill.isKeepingAddRemoveHistory()) return add(_skill, _order);
 
@@ -175,13 +181,12 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 
 					alreadyPresentSkill.updateIsSerialized();
 
-					if (_skill.getID() == "perk.shield_expert")
-					{					
-						::logInfo("Adding shield expert");
-						::logInfo("MSU_AddedStack: " + alreadyPresentSkill.m.MSU_AddedStack);
-						::logInfo("IsSerialized (skill): " + alreadyPresentSkill.m.IsSerialized);
-						::MSU.Log.printData(alreadyPresentSkill.m.MSU_IsSerializedStack, 2, false, 5);
-					}
+					// if (_skill.getID() == "actives.reload_bolt")
+					// {
+					// 	::logInfo("MSU_AddedStack: " + alreadyPresentSkill.m.MSU_AddedStack);
+					// 	::logInfo("IsSerialized (skill): " + alreadyPresentSkill.m.IsSerialized);
+					// 	::MSU.Log.printData(alreadyPresentSkill.m.MSU_IsSerializedStack, 2, false, 5);
+					// }
 
 					break;
 				}
@@ -193,6 +198,7 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		local remove = o.remove;
 		o.remove = function( _skill )
 		{
+			// ::logInfo(_skill.getID() + ": " + _skill.m.MSU_AddedStack);
 			if (_skill.m.MSU_AddedStack == 1) return remove(_skill);
 			else return _skill.removeSelf();
 		}
@@ -210,7 +216,7 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		o.removeByStack <- function( _skill, _isSerialized )
 		{
 			if (skill.m.MSU_AddedStack == 1) return remove(_skillID);
-			else return skill.removeSelfByStack(_stackedFields);
+			else return skill.removeSelfByStack(_isSerialized);
 		}
 
 		o.removeByStackByID <- function( _skillID, _isSerialized )
@@ -240,63 +246,93 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		}
 	});
 
+	// ::mods_hookNewObject("entity/tactical/tactical_entity_manager", function(o) {
+	// 	local spawn = o.spawn;
+	// 	o.spawn = function( _properties )
+	// 	{
+	// 		local ret = spawn(_properties);
+	// 		foreach (i, faction in this.getAllInstances())
+	// 		{
+	// 			if (i != ::Const.Faction.Player)
+	// 			{
+	// 				foreach (actor in faction)
+	// 				{
+	// 					actor.getSkills().onCombatStarted();
+	// 					actor.getItems().onCombatStarted();
+	// 					actor.getSkills().update();
+	// 				}
+	// 			}
+	// 		}
+
+	// 		::Math.seedRandom(::Time.getRealTime());
+	// 	}
+	// });
+
 	// Test perk
-	::mods_hookExactClass("skills/perks/perk_colossus", function(o) {
-		o.onEquip <- function( _item )
-		{
-			if (_item.getSlotType() != ::Const.ItemSlot.Mainhand) return;
+	// ::mods_hookExactClass("skills/perks/perk_colossus", function(o) {
+	// 	o.onCombatStarted <- function()
+	// 	{
+	// 		::logInfo(this.getContainer().getActor().getID() + " onCombatStarted");
+	// 	}
+	// 	o.onCombatFinished <- function()
+	// 	{
+	// 		::logInfo(this.getContainer().getActor().getID() + " onCombatFinished");
+	// 	}
+	// 	o.onEquip <- function( _item )
+	// 	{
+	// 		if (_item.getSlotType() != ::Const.ItemSlot.Mainhand) return;
 
-			// Add Shield Expert, Reach Advantage, and Duelist while a weapon is equipped
-			// But add non-permanent (i.e. IsSerialized = false) versions of these skills
+	// 		// Add Shield Expert, Reach Advantage, and Duelist while a weapon is equipped
+	// 		// But add non-permanent (i.e. IsSerialized = false) versions of these skills
 
-			this.getContainer().add(::MSU.new("scripts/skills/perks/perk_shield_expert", function(o) {
-				o.m.IsSerialized = false;
-				// o.m.IsRefundable = false;
-			}));
-			this.getContainer().add(::MSU.new("scripts/skills/perks/perk_reach_advantage", function(o) {
-				o.m.IsSerialized = false;
-				// o.m.IsRefundable = false;
-			}));
-			this.getContainer().add(::MSU.new("scripts/skills/perks/perk_duelist", function(o) {
-				o.m.IsSerialized = false;
-				// o.m.IsRefundable = false;
-			}));
-				
-			// add shield_expert permanently (i.e. normal IsSerialized = true version)
-			// for testing the stacking addition/removal of serialized skills
-			this.getContainer().add(::MSU.new("scripts/skills/perks/perk_shield_expert"));
-		}
+	// 		this.getContainer().add(::MSU.new("scripts/skills/perks/perk_shield_expert", function(o) {
+	// 			o.m.IsSerialized = false;
+	// 			// o.m.IsRefundable = false;
+	// 		}));
+	// 		this.getContainer().add(::MSU.new("scripts/skills/perks/perk_reach_advantage", function(o) {
+	// 			o.m.IsSerialized = false;
+	// 			// o.m.IsRefundable = false;
+	// 		}));
+	// 		this.getContainer().add(::MSU.new("scripts/skills/perks/perk_duelist", function(o) {
+	// 			o.m.IsSerialized = false;
+	// 			// o.m.IsRefundable = false;
+	// 		}));
 
-		o.onUnequip <- function( _item )
-		{
-			// Remove the Shield Expert, Reach Advantage and Duelist skills when a weapon is unequipped
-			// But we must remove the "non-permanent" i.e. "IsSerialized = false" versions of these skills (that we added in onEquip)
+	// 		// add shield_expert permanently (i.e. normal IsSerialized = true version)
+	// 		// for testing the stacking addition/removal of serialized skills
+	// 		this.getContainer().add(::MSU.new("scripts/skills/perks/perk_shield_expert"));
+	// 	}
 
-			this.getContainer().removeByStackByID("perk.shield_expert", false);
-			this.getContainer().removeByStackByID("perk.reach_advantage", false);
-			this.getContainer().removeByStackByID("perk.duelist", false);
-		}
+	// 	o.onUnequip <- function( _item )
+	// 	{
+	// 		// Remove the Shield Expert, Reach Advantage and Duelist skills when a weapon is unequipped
+	// 		// But we must remove the "non-permanent" i.e. "IsSerialized = false" versions of these skills (that we added in onEquip)
 
-		o.onAdded <- function()
-		{
-			local equippedItem = this.getContainer().getActor().getMainhandItem();
-			if (equippedItem != null)
-			{
-				this.getContainer().getActor().getItems().unequip(equippedItem);
-				this.getContainer().getActor().getItems().equip(equippedItem);
-			}
-		}
+	// 		this.getContainer().removeByStackByID("perk.shield_expert", false);
+	// 		this.getContainer().removeByStackByID("perk.reach_advantage", false);
+	// 		this.getContainer().removeByStackByID("perk.duelist", false);
+	// 	}
 
-		o.onRemoved <- function()
-		{
-			local equippedItem = this.getContainer().getActor().getMainhandItem();
-			if (equippedItem != null)
-			{
-				this.getContainer().getActor().getItems().unequip(equippedItem);
-				this.getContainer().getActor().getItems().equip(equippedItem);
-			}
-		}	
-	});
+	// 	o.onAdded <- function()
+	// 	{
+	// 		local equippedItem = this.getContainer().getActor().getMainhandItem();
+	// 		if (equippedItem != null)
+	// 		{
+	// 			this.getContainer().getActor().getItems().unequip(equippedItem);
+	// 			this.getContainer().getActor().getItems().equip(equippedItem);
+	// 		}
+	// 	}
+
+	// 	o.onRemoved <- function()
+	// 	{
+	// 		local equippedItem = this.getContainer().getActor().getMainhandItem();
+	// 		if (equippedItem != null)
+	// 		{
+	// 			this.getContainer().getActor().getItems().unequip(equippedItem);
+	// 			this.getContainer().getActor().getItems().equip(equippedItem);
+	// 		}
+	// 	}
+	// });
 });
 
 
