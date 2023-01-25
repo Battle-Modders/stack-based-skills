@@ -38,8 +38,13 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		local onInit = o.onInit;
 		o.onInit = function()
 		{
+			// add the slot because a vanilla teleport_skill tries to access it in its create() function
+			::MapGen <- ::new("scripts/mapgen/map_generator");
+
 			foreach (script in ::IO.enumerateFiles("scripts/skills"))
 			{
+				if (script == "scripts/skills/skill_container") continue;
+
 				try
 				{
 					// Store the default value of every skill's IsSerialized
@@ -49,14 +54,15 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 				}
 				catch (error)
 				{
-					::logError("Could not instantiate or call isSerialized() of skill: " + script + ". Error: " + error);
+					::logError("Could not instaniate or get ClassNameHash or isSerialized() of skill: " + script + ". Error: " + error);
 				}
 			}
+
+			delete ::MapGen;
 
 			return onInit();
 		}
 	});
-
 
 	::mods_hookBaseClass("skills/skill", function(o) {
 		o = o[o.SuperName];
