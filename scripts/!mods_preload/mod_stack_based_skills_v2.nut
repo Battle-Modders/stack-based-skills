@@ -72,7 +72,7 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		o.m.MSU_IsSerializedStack <- {
 			[true] = 0,
 			[false] = 0
-		};		
+		};
 
 		o.isKeepingAddRemoveHistory <- function()
 		{
@@ -108,12 +108,11 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 
 			this.updateIsSerialized();
 
-			// if (this.getID() == "actives.reload_bolt")
-			// {
-			// 	::logInfo("IsSerialized (skill): " + this.m.IsSerialized);
-			// 	// ::logInfo("IsSerialized (skill): " + this.m.MSU_StackedFields[fieldName][preferredValue]);
-			// 	::MSU.Log.printData(this.m.MSU_IsSerializedStack, 2, false, 5);
-			// }
+			if (this.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
+			{
+				::StackBasedSkills.Mod.Debug.printLog("IsSerialized (skill): " + this.m.IsSerialized);
+				if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(this.m.MSU_IsSerializedStack, 99, false, 99);
+			}
 
 			// The actual item which provided this skill isn't unequipped yet because
 			// the removeSelf is called BEFORE the item is unequipped. So, we iterate over
@@ -143,19 +142,17 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 		local add = o.add;
 		o.add = function( _skill, _order = 0 )
 		{
-			// if (_skill.getID() == "actives.reload_bolt")
-			// {
-			// 	::logInfo("add()");
-			// }
-
-			// if (_skill.getID() == "actives.reload_bolt")
-			// {
-			// 	::logInfo("MSU_AddedStack: " + _skill.m.MSU_AddedStack);
-			// }
-
 			if (!_skill.isKeepingAddRemoveHistory()) return add(_skill, _order);
 
 			_skill.m.MSU_IsSerializedStack[_skill.m.IsSerialized]++;
+
+			if (_skill.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
+			{
+				::StackBasedSkills.Mod.Debug.printLog("Adding Skill: " + _skill.getID());
+				::StackBasedSkills.Mod.Debug.printLog("MSU_AddedStack: " + _skill.m.MSU_AddedStack);
+				::StackBasedSkills.Mod.Debug.printLog("IsSerialized (skill): " + _skill.m.IsSerialized);
+				if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(_skill.m.MSU_IsSerializedStack, 99, false, 99);
+			}
 
 			local skills = clone this.m.Skills;
 			skills.extend(this.m.SkillsToAdd);
@@ -188,12 +185,13 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 
 					alreadyPresentSkill.updateIsSerialized();
 
-					// if (_skill.getID() == "actives.reload_bolt")
-					// {
-					// 	::logInfo("MSU_AddedStack: " + alreadyPresentSkill.m.MSU_AddedStack);
-					// 	::logInfo("IsSerialized (skill): " + alreadyPresentSkill.m.IsSerialized);
-					// 	::MSU.Log.printData(alreadyPresentSkill.m.MSU_IsSerializedStack, 2, false, 5);
-					// }
+					if (alreadyPresentSkill.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
+					{
+						::StackBasedSkills.Mod.Debug.printLog("Already present skill:");
+						::StackBasedSkills.Mod.Debug.printLog("MSU_AddedStack: " + alreadyPresentSkill.m.MSU_AddedStack);
+						::StackBasedSkills.Mod.Debug.printLog("IsSerialized (skill): " + alreadyPresentSkill.m.IsSerialized);
+						if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(alreadyPresentSkill.m.MSU_IsSerializedStack, 99, false, 99);
+					}
 
 					break;
 				}
@@ -219,7 +217,7 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 			if (skill.m.MSU_AddedStack == 1) return removeByID(_skillID);
 			else return skill.removeSelf();
 		}
-		
+
 		o.removeByStack <- function( _skill, _isSerialized )
 		{
 			if (skill.m.MSU_AddedStack == 1) return remove(_skillID);
@@ -245,7 +243,7 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 			// This variable is needed for proper functionality in the skill.removeSelf function because
 			// in that function we want to know if the item being unequipped is the one that is attached to that skill
 			// and skills are removed before the item is unequipped
-			this.m.MSU_ItemBeingUnequipped = _item;		
+			this.m.MSU_ItemBeingUnequipped = _item;
 			local ret = unequip(_item);
 			this.m.MSU_ItemBeingUnequipped = null;
 
