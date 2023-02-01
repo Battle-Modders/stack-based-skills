@@ -23,7 +23,8 @@ The opposite is true if one is adding a by-default non-serialized skill as seria
 ::mods_registerMod(::StackBasedSkills.ID, ::StackBasedSkills.Version, ::StackBasedSkills.Name);
 ::mods_queue(::StackBasedSkills.ID, "mod_msu(>=1.2.0.rc.2)", function() {
 
-	// ::StackBasedSkills.Mod <- ::MSU.Class.Mod(::StackBasedSkills.ID, ::StackBasedSkills.Version, ::StackBasedSkills.Name);
+	::StackBasedSkills.Mod <- ::MSU.Class.Mod(::StackBasedSkills.ID, ::StackBasedSkills.Version, ::StackBasedSkills.Name);
+	::include("mod_stack_based_skills/mod_settings.nut");
 
 	::MSU.new <- function( _script, _function = null )
 	{
