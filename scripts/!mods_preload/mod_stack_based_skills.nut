@@ -1,5 +1,5 @@
 ::StackBasedSkills <- {
-	Version = "0.2.0",
+	Version = "0.4.0",
 	ID = "mod_stack_based_skills",
 	Name = "Stack Based Skills",
 };
@@ -17,5 +17,5 @@
 		return obj;
 	}
 
-	::include("mod_stack_based_skills/mod_stack_based_skills_v2.nut");
+	::include("mod_stack_based_skills/mod_stack_based_skills_v4.nut");
 });
