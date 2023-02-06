@@ -17,33 +17,22 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 
 ::MSU.Skills.ClassNameHashToIsSerializedMap <- {};
 
-::mods_hookExactClass("root_state", function(o) {
-	local onInit = o.onInit;
-	o.onInit = function()
+::MSU.AfterQueue.add(::StackBasedSkills.ID, function() {
+	foreach (script in ::IO.enumerateFiles("scripts/skills"))
 	{
-		// add the slot because a vanilla teleport_skill tries to access it in its create() function
-		::MapGen <- ::new("scripts/mapgen/map_generator");
+		if (script == "scripts/skills/skill_container" || script == "scripts/skills/skill") continue;
 
-		foreach (script in ::IO.enumerateFiles("scripts/skills"))
+		try
 		{
-			if (script == "scripts/skills/skill_container" || script == "scripts/skills/skill") continue;
-
-			try
-			{
-				// Store the default value of every skill's IsSerialized
-				// This is used in the `removeSelf` function to pass the default value for this skill
-				local skill = ::new(script);
-				::MSU.Skills.ClassNameHashToIsSerializedMap[skill.ClassNameHash] <- skill.isSerialized();
-			}
-			catch (error)
-			{
-				::logError("Could not instaniate or get ClassNameHash or isSerialized() of skill: " + script + ". Error: " + error);
-			}
+			// Store the default value of every skill's IsSerialized
+			// This is used in the `removeSelf` function to pass the default value for this skill
+			local skill = ::new(script);
+			::MSU.Skills.ClassNameHashToIsSerializedMap[skill.ClassNameHash] <- skill.isSerialized();
 		}
-
-		delete ::MapGen;
-
-		return onInit();
+		catch (error)
+		{
+			::logError("Could not instaniate or get ClassNameHash or isSerialized() of skill: " + script + ". Error: " + error);
+		}
 	}
 });
 
