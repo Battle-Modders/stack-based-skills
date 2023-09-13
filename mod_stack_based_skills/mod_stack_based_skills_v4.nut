@@ -152,8 +152,8 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 
 				// If already present skill is NOT serialized, and new skill IS serialized, then we intend to replace
 				// the already present one with this new one (to ensure that the serialized skill's data is what is kept)
-				_skill.m.MSU_IsSerializedStack[true] = 1;
 				_skill.m.MSU_IsSerializedStack = clone alreadyPresentSkill.m.MSU_IsSerializedStack;
+				_skill.m.MSU_IsSerializedStack[true] = 1;
 				_skill.m.MSU_AddedStack = alreadyPresentSkill.m.MSU_AddedStack;
 			}
 			else
