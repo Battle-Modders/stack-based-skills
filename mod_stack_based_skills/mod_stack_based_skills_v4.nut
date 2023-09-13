@@ -76,11 +76,18 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 		this.m.MSU_IsSerializedStack[_isSerialized] = count - 1;
 		if (--this.m.MSU_AddedStack == 0) return removeSelf();
 
+		if (this.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
+		{
+			::StackBasedSkills.Mod.Debug.printLog("Before updateIsSerialized: " + this.m.IsSerialized);
+			::StackBasedSkills.Mod.Debug.printLog("MSU_AddedStack: " + this.m.MSU_AddedStack);
+			if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(this.m.MSU_IsSerializedStack, 99, false, 99);
+		}
+
 		this.updateIsSerialized();
 
 		if (this.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
 		{
-			::StackBasedSkills.Mod.Debug.printLog("IsSerialized (skill): " + this.m.IsSerialized);
+			::StackBasedSkills.Mod.Debug.printLog("After updateIsSerialized (skill): " + this.m.IsSerialized);
 			if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(this.m.MSU_IsSerializedStack, 99, false, 99);
 		}
 
@@ -125,6 +132,7 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 		if (_skill.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
 		{
 			::StackBasedSkills.Mod.Debug.printLog(format("Adding Skill:\nMSU_AddedStack: %i\nIsSerialized: %s", _skill.m.MSU_AddedStack, _skill.m.IsSerialized + ""));
+			::MSU.Log.printStackTrace();
 		}
 
 		local skills = clone this.m.Skills;
