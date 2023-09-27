@@ -17,46 +17,29 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 
 ::MSU.Skills.ClassNameHashToIsSerializedMap <- {};
 
-::MSU.AfterQueue.add(::StackBasedSkills.ID, function() {
-	foreach (script in ::IO.enumerateFiles("scripts/skills"))
-	{
-		if (script == "scripts/skills/skill_container" || script == "scripts/skills/skill") continue;
-
-		try
-		{
-			// Store the default value of every skill's IsSerialized
-			// This is used in the `removeSelf` function to pass the default value for this skill
-			local skill = ::new(script);
-			::MSU.Skills.ClassNameHashToIsSerializedMap[skill.ClassNameHash] <- skill.isSerialized();
-		}
-		catch (error)
-		{
-			::logError("Could not instaniate or get ClassNameHash or isSerialized() of skill: " + script + ". Error: " + error);
-		}
-	}
-});
-
-::mods_hookBaseClass("skills/skill", function(o) {
-	o = o[o.SuperName];
-
-	o.m.MSU_AddedStack <- 1;
-	o.m.MSU_IsSerializedStack <- {
+::StackBasedSkills.HooksMod.hook("scripts/skills/skill", function(q) {
+	q.m.MSU_AddedStack <- 1;
+	q.m.MSU_IsSerializedStack <- {
 		[true] = 0,
 		[false] = 0
 	};
 
-	o.isKeepingAddRemoveHistory <- function()
+	q.isKeepingAddRemoveHistory <- function()
 	{
 		return !this.isStacking() && !this.isType(::Const.SkillType.Special) && (this.isType(::Const.SkillType.Perk) || !this.isType(::Const.SkillType.StatusEffect));
 	}
 
-	local removeSelf = o.removeSelf;
-	o.removeSelf = function()
+	local removeSelf;
+	q.removeSelf = function( __original )
 	{
-		this.removeSelfByStack(::MSU.Skills.ClassNameHashToIsSerializedMap[this.ClassNameHash]);
+		removeSelf = __original;
+		return function()
+		{
+			this.removeSelfByStack(::MSU.Skills.ClassNameHashToIsSerializedMap[this.ClassNameHash]);
+		}
 	}
 
-	o.updateIsSerialized <- function()
+	q.updateIsSerialized <- function()
 	{
 		if (this.m.MSU_IsSerializedStack[true] == 0 && this.m.MSU_IsSerializedStack[false] == 0)
 		{
@@ -66,7 +49,7 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 		this.m.IsSerialized = this.m.MSU_IsSerializedStack[true] > 0;
 	}
 
-	o.removeSelfByStack <- function( _isSerialized = false )
+	q.removeSelfByStack <- function( _isSerialized = false )
 	{
 		if (!this.isKeepingAddRemoveHistory()) return removeSelf();
 
@@ -115,17 +98,16 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 	}
 });
 
-::mods_hookNewObject("skills/skill_container", function(o) {
-	o.addByStack <- function( _skill, _order = 0 )
+::StackBasedSkills.HooksMod.hook("scripts/skills/skill_container", function(q) {
+	q.addByStack <- function( _skill, _order = 0 )
 	{
 		_skill.m.IsSerialized = false;
 		return this.add(_skill, _order);
 	}
 
-	local add = o.add;
-	o.add = function( _skill, _order = 0 )
+	q.add = @(__original) function( _skill, _order = 0 )
 	{
-		if (!_skill.isKeepingAddRemoveHistory()) return add(_skill, _order);
+		if (!_skill.isKeepingAddRemoveHistory()) return __original(_skill, _order);
 
 		_skill.m.MSU_IsSerializedStack[_skill.m.IsSerialized] = 1;
 
@@ -190,33 +172,31 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 			if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(skillToKeep.m.MSU_IsSerializedStack, 99, false, 99);
 		}
 
-		return add(_skill, _order);
+		return __original(_skill, _order);
 	}
 
-	local remove = o.remove;
-	o.remove = function( _skill )
+	q.remove = @(__original) function( _skill )
 	{
 		// ::logInfo(_skill.getID() + ": " + _skill.m.MSU_AddedStack);
-		if (_skill.m.MSU_AddedStack == 1) return remove(_skill);
+		if (_skill.m.MSU_AddedStack == 1) return __original(_skill);
 		else return _skill.removeSelf();
 	}
 
-	local removeByID = o.removeByID;
-	o.removeByID = function( _skillID )
+	q.removeByID = @(__original) function( _skillID )
 	{
 		local skill = this.getSkillByID(_skillID);
 		if (skill == null) return;
 
-		if (skill.m.MSU_AddedStack == 1) return removeByID(_skillID);
+		if (skill.m.MSU_AddedStack == 1) return __original(_skillID);
 		else return skill.removeSelf();
 	}
 
-	o.removeByStack <- function( _skill, _isSerialized = false )
+	q.removeByStack <- function( _skill, _isSerialized = false )
 	{
 		return skill.removeSelfByStack(_isSerialized);
 	}
 
-	o.removeByStackByID <- function( _skillID, _isSerialized = false )
+	q.removeByStackByID <- function( _skillID, _isSerialized = false )
 	{
 		local skill = this.getSkillByID(_skillID);
 		if (skill == null) return;
@@ -225,68 +205,18 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 	}
 });
 
-::mods_hookNewObject("items/item_container", function(o) {
-	o.m.MSU_ItemBeingUnequipped <- null;
+::StackBasedSkills.HooksMod.hook("scripts/items/item_container", function(q) {
+	q.m.MSU_ItemBeingUnequipped <- null;
 
-	local unequip = o.unequip;
-	o.unequip = function( _item )
+	q.unequip = @(__original) function( _item )
 	{
 		// This variable is needed for proper functionality in the skill.removeSelf function because
 		// in that function we want to know if the item being unequipped is the one that is attached to that skill
 		// and skills are removed before the item is unequipped
 		this.m.MSU_ItemBeingUnequipped = _item;
-		local ret = unequip(_item);
+		local ret = __original(_item);
 		this.m.MSU_ItemBeingUnequipped = null;
 
 		return ret;
 	}
 });
-
-// Test perk
-// ::mods_hookExactClass("skills/perks/perk_colossus", function(o) {
-// 	o.onEquip <- function( _item )
-// 	{
-// 		if (_item.getSlotType() != ::Const.ItemSlot.Mainhand) return;
-
-// 	// 	// Add Shield Expert, Reach Advantage, and Duelist while a weapon is equipped
-// 	// 	// But add non-permanent (i.e. IsSerialized = false) versions of these skills
-
-// 		this.getContainer().addByStack(::new("scripts/skills/perks/perk_shield_expert"));
-// 		this.getContainer().addByStack(::new("scripts/skills/perks/perk_reach_advantage"));
-// 		this.getContainer().addByStack(::new("scripts/skills/perks/perk_duelist"));
-// 	}
-
-// 	o.onUnequip <- function( _item )
-// 	{
-// 		// Remove the Shield Expert, Reach Advantage and Duelist skills when a weapon is unequipped
-// 		// But we must remove the "non-permanent" i.e. "IsSerialized = false" versions of these skills (that we added in onEquip)
-// 		if (_item.getSlotType() != ::Const.ItemSlot.Mainhand) return;
-
-// 		this.getContainer().removeByStackByID("perk.shield_expert");
-// 		this.getContainer().removeByStackByID("perk.reach_advantage");
-// 		this.getContainer().removeByStackByID("perk.duelist");
-// 	}
-
-// 	o.onAdded <- function()
-// 	{
-// 		// this.getContainer().addByStack(::new("scripts/skills/perks/perk_shield_expert"));
-// 		// this.getContainer().addByStack(::new("scripts/skills/perks/perk_reach_advantage"));
-// 		// this.getContainer().addByStack(::new("scripts/skills/perks/perk_duelist"));
-// 		local equippedItem = this.getContainer().getActor().getMainhandItem();
-// 		if (equippedItem != null)
-// 		{
-// 			this.getContainer().getActor().getItems().unequip(equippedItem);
-// 			this.getContainer().getActor().getItems().equip(equippedItem);
-// 		}
-// 	}
-
-// 	o.onRemoved <- function()
-// 	{
-// 		// local equippedItem = this.getContainer().getActor().getMainhandItem();
-// 		// if (equippedItem != null)
-// 		// {
-// 		// 	this.getContainer().getActor().getItems().unequip(equippedItem);
-// 		// 	this.getContainer().getActor().getItems().equip(equippedItem);
-// 		// }
-// 	}
-// });
