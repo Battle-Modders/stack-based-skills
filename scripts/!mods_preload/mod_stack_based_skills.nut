@@ -14,12 +14,5 @@
 
 	::include("mod_stack_based_skills/mod_settings.nut");
 
-	::MSU.new <- function( _script, _function = null )
-	{
-		local obj = ::new(_script);
-		if (_function != null) _function(obj);
-		return obj;
-	}
-
 	::include("mod_stack_based_skills/mod_stack_based_skills_v4.nut");
 });
