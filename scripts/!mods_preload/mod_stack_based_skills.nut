@@ -1,5 +1,5 @@
 ::StackBasedSkills <- {
-	Version = "0.5.0",
+	Version = "0.5.1",
 	ID = "mod_stack_based_skills",
 	Name = "Stack Based Skills",
 };
