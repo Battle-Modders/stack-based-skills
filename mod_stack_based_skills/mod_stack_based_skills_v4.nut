@@ -15,8 +15,6 @@ Calling the default "removeSelf" on this skill will use stacks of IsSerialized =
 If I want to remove the stack which wasn't serialized, I have to manually request that i.e. `removeSelfByStack(false)` // defaults to false
 */
 
-::MSU.Skills.ClassNameHashToIsSerializedMap <- {};
-
 ::StackBasedSkills.HooksMod.hook("scripts/skills/skill", function(q) {
 	q.m.MSU_AddedStack <- 1;
 	q.m.MSU_IsSerializedStack <- {
@@ -35,7 +33,7 @@ If I want to remove the stack which wasn't serialized, I have to manually reques
 		removeSelf = __original;
 		return function()
 		{
-			this.removeSelfByStack(::MSU.Skills.ClassNameHashToIsSerializedMap[this.ClassNameHash]);
+			this.removeSelfByStack(::new(::IO.scriptFilenameByHash(this.ClassNameHash)).isSerialized());
 		}
 	}
 

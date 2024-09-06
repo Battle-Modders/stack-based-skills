@@ -23,22 +23,3 @@
 
 	::include("mod_stack_based_skills/mod_stack_based_skills_v4.nut");
 });
-
-::StackBasedSkills.HooksMod.queue(">mod_msu", function() {
-	foreach (script in ::IO.enumerateFiles("scripts/skills"))
-	{
-		if (script == "scripts/skills/skill_container" || script == "scripts/skills/skill") continue;
-
-		try
-		{
-			// Store the default value of every skill's IsSerialized
-			// This is used in the `removeSelf` function to pass the default value for this skill
-			local skill = ::new(script);
-			::MSU.Skills.ClassNameHashToIsSerializedMap[skill.ClassNameHash] <- skill.isSerialized();
-		}
-		catch (error)
-		{
-			::logError("Could not instaniate or get ClassNameHash or isSerialized() of skill: " + script + ". Error: " + error);
-		}
-	}
-}, ::Hooks.QueueBucket.FirstWorldInit);
