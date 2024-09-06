@@ -9,11 +9,11 @@
 	{
 		if (!_skill.isKeepingAddRemoveHistory()) return __original(_skill, _order);
 
-		_skill.m.MSU_IsSerializedStack[_skill.m.IsSerialized] = 1;
+		_skill.m.SBS_IsSerializedStack[_skill.m.IsSerialized] = 1;
 
 		if (_skill.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
 		{
-			::StackBasedSkills.Mod.Debug.printLog(format("Adding Skill:\nMSU_AddedStack: %i\nIsSerialized: %s", _skill.m.MSU_AddedStack, _skill.m.IsSerialized + ""));
+			::StackBasedSkills.Mod.Debug.printLog(format("Adding Skill:\nSBS_AddedStack: %i\nIsSerialized: %s", _skill.m.SBS_AddedStack, _skill.m.IsSerialized + ""));
 			::MSU.Log.printStackTrace();
 		}
 
@@ -34,20 +34,20 @@
 
 				// If already present skill is NOT serialized, and new skill IS serialized, then we intend to replace
 				// the already present one with this new one (to ensure that the serialized skill's data is what is kept)
-				_skill.m.MSU_IsSerializedStack = clone alreadyPresentSkill.m.MSU_IsSerializedStack;
-				_skill.m.MSU_IsSerializedStack[true] = 1;
-				_skill.m.MSU_AddedStack = alreadyPresentSkill.m.MSU_AddedStack;
+				_skill.m.SBS_IsSerializedStack = clone alreadyPresentSkill.m.SBS_IsSerializedStack;
+				_skill.m.SBS_IsSerializedStack[true] = 1;
+				_skill.m.SBS_AddedStack = alreadyPresentSkill.m.SBS_AddedStack;
 			}
 			else
 			{
 				// If the skill being added is NOT serialized, then just add it as a stack
-				alreadyPresentSkill.m.MSU_IsSerializedStack[false]++;
+				alreadyPresentSkill.m.SBS_IsSerializedStack[false]++;
 				skillToKeep = alreadyPresentSkill;
 			}
 
 			local skillToDiscard = skillToKeep == _skill ? alreadyPresentSkill : _skill;
 			skillToDiscard.m.IsGarbage = true;
-			skillToKeep.m.MSU_AddedStack++;
+			skillToKeep.m.SBS_AddedStack++;
 			if (!::MSU.isNull(skillToDiscard.getItem()))
 			{
 				foreach (i, itemSkill in skillToDiscard.getItem().m.SkillPtrs)
@@ -68,8 +68,8 @@
 
 		if (skillToKeep.getID() == ::getModSetting(::StackBasedSkills.ID, "LoggingSkillID").getValue())
 		{
-			::StackBasedSkills.Mod.Debug.printLog(format("Skill in Container:\nMSU_AddedStack: %i\nIsSerialized: %s", skillToKeep.m.MSU_AddedStack, skillToKeep.m.IsSerialized + ""));
-			if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(skillToKeep.m.MSU_IsSerializedStack, 99, false, 99);
+			::StackBasedSkills.Mod.Debug.printLog(format("Skill in Container:\nSBS_AddedStack: %i\nIsSerialized: %s", skillToKeep.m.SBS_AddedStack, skillToKeep.m.IsSerialized + ""));
+			if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(skillToKeep.m.SBS_IsSerializedStack, 99, false, 99);
 		}
 
 		return __original(_skill, _order);
@@ -77,8 +77,8 @@
 
 	q.remove = @(__original) function( _skill )
 	{
-		// ::logInfo(_skill.getID() + ": " + _skill.m.MSU_AddedStack);
-		if (_skill.m.MSU_AddedStack == 1) return __original(_skill);
+		// ::logInfo(_skill.getID() + ": " + _skill.m.SBS_AddedStack);
+		if (_skill.m.SBS_AddedStack == 1) return __original(_skill);
 		else return _skill.removeSelf();
 	}
 
@@ -87,7 +87,7 @@
 		local skill = this.getSkillByID(_skillID);
 		if (skill == null) return;
 
-		if (skill.m.MSU_AddedStack == 1) return __original(_skillID);
+		if (skill.m.SBS_AddedStack == 1) return __original(_skillID);
 		else return skill.removeSelf();
 	}
 
