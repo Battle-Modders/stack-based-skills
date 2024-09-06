@@ -1,4 +1,4 @@
-::StackBasedSkills.HooksMod.hook("scripts/skills/skill_container", function(q) {
+::StackBasedSkills.MH.hook("scripts/skills/skill_container", function(q) {
 	q.addByStack <- function( _skill, _order = 0 )
 	{
 		_skill.m.IsSerialized = false;

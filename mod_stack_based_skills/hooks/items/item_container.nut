@@ -1,4 +1,4 @@
-::StackBasedSkills.HooksMod.hook("scripts/items/item_container", function(q) {
+::StackBasedSkills.MH.hook("scripts/items/item_container", function(q) {
 	q.m.SBS_ItemBeingUnequipped <- null;
 
 	q.unequip = @(__original) function( _item )

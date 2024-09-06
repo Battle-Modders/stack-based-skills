@@ -1,4 +1,4 @@
-::StackBasedSkills.HooksMod.hook("scripts/skills/skill", function(q) {
+::StackBasedSkills.MH.hook("scripts/skills/skill", function(q) {
 	q.m.SBS_AddedStack <- 1;
 	q.m.SBS_IsSerializedStack <- {
 		[true] = 0,
