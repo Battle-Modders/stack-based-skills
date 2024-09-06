@@ -14,5 +14,8 @@
 
 	::include("mod_stack_based_skills/mod_settings.nut");
 
-	::include("mod_stack_based_skills/mod_stack_based_skills_v4.nut");
+	foreach (file in ::IO.enumerateFiles("mod_stack_based_skills/hooks"))
+	{
+		::include(file);
+	}
 });
