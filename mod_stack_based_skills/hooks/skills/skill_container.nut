@@ -72,6 +72,13 @@
 			if (::StackBasedSkills.Mod.Debug.isEnabled()) ::MSU.Log.printData(skillToKeep.m.SBS_IsSerializedStack, 99, false, 99);
 		}
 
+		// We do this so that MSU properly saves this skill's base values
+		// and doesn't complain when skills added by items are not added to the actor
+		// thereby not having their base values saved. Because MSU tries to reset certain
+		// fields in its hook on weapon.addSkill.
+		_skill.setContainer(this);
+		_skill.setContainer(null);
+
 		return __original(_skill, _order);
 	}
 
