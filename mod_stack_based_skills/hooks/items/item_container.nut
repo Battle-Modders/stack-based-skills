@@ -34,7 +34,7 @@
 		// and skills are removed before the item is unequipped
 		local old_itemBeingUnequipped = this.m.SBS_ItemBeingUnequipped;
 		this.m.SBS_ItemBeingUnequipped = this.m.Items[::Const.ItemSlot.Bag][_slot];
-		local ret = __original(_item);
+		local ret = __original(_slot);
 		this.m.SBS_ItemBeingUnequipped = old_itemBeingUnequipped;
 
 		return ret;
